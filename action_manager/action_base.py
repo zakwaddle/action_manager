@@ -42,7 +42,7 @@ class ActionReport:
 @dataclass
 class ActionContext:
     data: dict[str, Any] = field(default_factory=dict)
-    _action_sequence:list = [] 
+    _action_sequence = [] 
     
     def __getitem__(self, key: str):
         if hasattr(self, key):
