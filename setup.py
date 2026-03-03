@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='action_manager',
-    version='0.0.2',
+    version='0.0.3',
     url='https://github.com/zakwaddle/action_manager',
     packages=find_packages(where="."),
     package_dir={"": "."},
