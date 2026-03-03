@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import traceback
-from typing import Any, Optional, Tuple
+from typing import Any
 from dataclasses import dataclass, field
 
 
@@ -140,7 +140,7 @@ class Action(ABC):
         try:
             self.execute()
         except Exception as e:
-            self.result.add_error(str(traceback.format_exc()))
+            self.result.add_error(f"{e} - {str(traceback.format_exc())}")
         
         report = self.report()
         self.context.add_action(report)
@@ -149,6 +149,8 @@ class Action(ABC):
     def __call__(self):
         return self.run()
 
+    def run_sub_action(self, command: str, **kwargs):
+        return run_action(command, context=self.context, **kwargs)
 
         
 def run_action(command: str, context:ActionContext=None, **kwargs):
