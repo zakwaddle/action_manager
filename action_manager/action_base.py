@@ -154,26 +154,52 @@ class Action(ABC):
 
         
 def run_action(command: str, context:ActionContext=None, **kwargs):
-    for cls in Action.__subclasses__():
-        if hasattr(cls, "command") and cls.command == command:
-            action = cls(request=ActionRequest(action=command, params=kwargs, context=context))
-            print(f"running: {action.command}")
-            return action.run()
+    def find_action_class(base_class):
+        for cls in base_class.__subclasses__():
+            if hasattr(cls, "command") and cls.command == command:
+                return cls
+            subclass_result = find_action_class(cls)
+            if subclass_result:
+                return subclass_result
+        return None
+
+    target_cls = find_action_class(Action)
+    
+    if target_cls:
+        action = target_cls(request=ActionRequest(action=command, params=kwargs, context=context))
+        print(f"running: {action.command}")
+        return action.run()
+        
     raise ValueError(f"No storage action found for command: {command}")
 
 
 def run_action_from_request(request: ActionRequest):
-    for cls in Action.__subclasses__():
-        if hasattr(cls, "command") and cls.command == request.action:
-            action = cls(request=request)
-            print(f"running: {action.command}")
-            return action.run()
+    def find_action_class(base_class):
+        for cls in base_class.__subclasses__():
+            if hasattr(cls, "command") and cls.command == request.action:
+                return cls
+            subclass_result = find_action_class(cls)
+            if subclass_result:
+                return subclass_result
+        return None
+
+    target_cls = find_action_class(Action)
+    
+    if target_cls:
+        action = target_cls(request=request)
+        print(f"running: {action.command}")
+        return action.run()
+        
     raise ValueError(f"No storage action found for command: {request.action}")
 
 
 def available_actions():
-    commands = []
-    for cls in Action.__subclasses__():
-        if hasattr(cls, "command"):
-            commands.append(cls.command)
-    return commands
+    def get_actions(base_class):
+        commands = []
+        for cls in base_class.__subclasses__():
+            if hasattr(cls, "command") and getattr(cls, "command") != "base":
+                commands.append(cls.command)
+            commands.extend(get_actions(cls))
+        return commands
+        
+    return get_actions(Action)
