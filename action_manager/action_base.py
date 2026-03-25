@@ -164,8 +164,11 @@ class Action(ABC):
             raise ActionFailure(
                 f"Action '{self.command}' expected context, but context is None"
             )
-
-        return ctx.get(name)
+        thing = ctx.get(name)
+        if thing is None:
+            raise ActionFailure(f"Missing required context value '{name}'")
+        else:
+            return thing
         
 
     @abstractmethod
@@ -196,7 +199,14 @@ class Action(ABC):
         """Spawns and executes another action, sharing the same context."""
         return run_action(command, context=self.context, **kwargs)
 
-        
+    def require_sub_action(self, command: str, **kwargs) -> ActionReport:
+        """Spawns and executes another action, sharing the same context."""
+        try:
+            return run_action(command, context=self.context, **kwargs)
+        except Exception as e:
+            self.result.add_error(f"Sub-action '{command}' failed: {e}")
+            raise ActionFailure(f"Sub-action '{command}' failed: {e}") from e
+
 def run_action(command: str, context:ActionContext=None, **kwargs) -> ActionReport:
     """
     Factory and execution runner for Actions based on a command string.
