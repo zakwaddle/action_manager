@@ -201,11 +201,11 @@ class Action(ABC):
 
     def require_sub_action(self, command: str, **kwargs) -> ActionReport:
         """Spawns and executes another action, sharing the same context."""
-        try:
-            return run_action(command, context=self.context, **kwargs)
-        except Exception as e:
-            self.result.add_error(f"Sub-action '{command}' failed: {e}")
-            raise ActionFailure(f"Sub-action '{command}' failed: {e}") from e
+        sub_action = run_action(command, context=self.context, **kwargs)
+        if not sub_action.successful:
+            raise ActionFailure(f"Sub-action '{command}' failed: {sub_action.errors}")
+        return sub_action
+
 
 def run_action(command: str, context:ActionContext=None, **kwargs) -> ActionReport:
     """
